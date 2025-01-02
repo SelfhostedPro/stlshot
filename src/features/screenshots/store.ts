@@ -3,11 +3,11 @@ import { create } from 'zustand';
 import { Vector3 } from 'three';
 import { createJSONStorage, persist, devtools } from 'zustand/middleware'
 
-import { createIndexedDBStorage } from '@/lib/indexDBStorage';
+import { createIndexedDBStorage, createPersistStorage } from '@/lib/indexDBStorage';
 
 // Separate storage for images
 const IMAGE_STORE_NAME = 'screenshot-images';
-const imageDB = createIndexedDBStorage({
+const imageDB = createIndexedDBStorage<string>({
     name: IMAGE_STORE_NAME,
     version: 1,
 });
@@ -57,9 +57,10 @@ interface ScreenshotsState {
     clearScreenshots: () => void;
     startCapture: (mode: 'single' | 'all' | 'all-models') => void;
     stopCapture: () => void;
-    captureAllViews: () => void;
 }
 
+// Define the persisted state type
+type PersistedState = Pick<ScreenshotsState, 'screenshots'>;
 
 export const useScreenshotsStore = create<ScreenshotsState>()(
     devtools(
@@ -91,15 +92,14 @@ export const useScreenshotsStore = create<ScreenshotsState>()(
                 })),
                 clearScreenshots: () => set({ screenshots: [] }),
                 startCapture: (mode) => set({ captureInProgress: true, captureMode: mode }),
-                stopCapture: () => set({ captureInProgress: false, captureMode: null }),
-                captureAllViews: () => set({ captureInProgress: true }),
+                stopCapture: () => set({ captureInProgress: false, captureMode: null })
             }),
             {
                 name: 'screenshot-state',
-                storage: createJSONStorage(() => createIndexedDBStorage({
+                storage: createPersistStorage<PersistedState>({
                     name: 'screenshot-state',
                     version: 1
-                })),
+                }),
                 partialize: (state) => ({
                     screenshots: state.screenshots
                 }),

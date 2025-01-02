@@ -122,7 +122,7 @@ export const ThumbnailCarousel = <T extends string | number>({
             >
                 <CarouselContent
                     // containerClassName=
-                    className={cn(isVertical ? 'max-h-[50vh]' : "max-h-[80vh]")}
+                    className={cn(isVertical ? 'max-h-[50vh]' : "max-h-[80vh] max-w-[80vw]")}
                 >
                     {imageData?.map((data, i) => (
                         <CarouselItem

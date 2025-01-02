@@ -46,9 +46,7 @@ export const CameraController = () => {
 
 
     useEffect(() => {
-        if (!captureInProgress) return;
-        const initialPosition = camera.position.clone();
-        const initialZoom = camera.zoom
+        if (!captureMode) return;
 
         const handleCapture = async () => {
             const currentDistance = new Vector3()
@@ -60,50 +58,127 @@ export const CameraController = () => {
                     name: 'custom-view',
                     vector: camera.position.clone()
                 };
-                const data = captureScreenshot(
-                    camera,
-                    gl,
-                    scene,
-                    position.vector
-                );
+                const data = captureScreenshot(camera, gl, scene, position.vector);
                 addScreenshot(selectedModel?.name || 'model', position, data);
+                stopCapture();
             } else if (captureMode === 'all') {
-
+                const originalZoom = camera.zoom;
                 const positions = calculatePositions(currentDistance);
                 for (const position of positions) {
-                    const data = captureScreenshot(
-                        camera,
-                        gl,
-                        scene,
-                        position.vector
-                    );
+                    const data = captureScreenshot(camera, gl, scene, position.vector);
                     addScreenshot(selectedModel?.name || 'model', position, data);
-                    // await new Promise(resolve => setTimeout(resolve, 500));
                 }
+                stopCapture();
             } else if (captureMode === 'all-models') {
-                for (const model of models) {
-                    selectModel(model.id);
-                    camera.zoom = model.workspaceSettings.camera?.zoom || 2
-                    // Use the stored Distance
-                    const positions = calculatePositions(currentDistance)
-                    for (const position of positions) {
-                        const data = captureScreenshot(
-                            camera,
-                            gl,
-                            scene,
-                            position.vector
-                        )
-                        addScreenshot(model.name, position, data)
+                const originalModel = selectedModel;
+                const originalZoom = camera.zoom;
+
+                try {
+                    // for (const model of models) {
+                    //     selectModel(model.id);
+                    //     await new Promise(resolve => setTimeout(resolve, 50));
+                    // }
+                    for (const [index, model] of models.entries()) {
+                        selectModel(model.id);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        // Alternate picking models to account for webgl vector buffer bug
+                        selectModel(index === 0 ? model.id : models[index - 1].id);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        selectModel(index === models.length - 1 ? models[0].id : index === 0 ? model.id : models[index + 1].id);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        selectModel(model.id);
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        camera.zoom = model.settings.camera?.zoom || 2;
+                        camera.updateProjectionMatrix();
+
+                        const positions = calculatePositions(currentDistance);
+                        for (const position of positions) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            const data = captureScreenshot(camera, gl, scene, position.vector);
+                            addScreenshot(model.name, position, data);
+                        }
                     }
+                } finally {
+                    // Restore original state
+                    if (originalModel) {
+                        selectModel(originalModel.id);
+                    }
+                    camera.zoom = originalZoom;
+                    camera.updateProjectionMatrix();
+                    stopCapture();
                 }
-                camera.zoom = initialZoom
             }
-            camera.position.copy(initialPosition)
-            stopCapture();
         };
 
         handleCapture();
-    }, [captureInProgress, camera, gl, scene, addScreenshot, captureMode, stopCapture, models, selectModel, selectModel.name, selectedModel?.name]);
+    }, [captureMode]);
+
+    // useEffect(() => {
+    //     if (!captureInProgress) return;
+    //     const initialPosition = camera.position.clone();
+    //     const initialZoom = camera.zoom
+
+    //     const handleCapture = async () => {
+    //         const currentDistance = new Vector3()
+    //             .subVectors(camera.position, new Vector3(0, 0, 0))
+    //             .length();
+
+    //         if (captureMode === 'single') {
+    //             const position = {
+    //                 name: 'custom-view',
+    //                 vector: camera.position.clone()
+    //             };
+    //             const data = captureScreenshot(
+    //                 camera,
+    //                 gl,
+    //                 scene,
+    //                 position.vector
+    //             );
+    //             addScreenshot(selectedModel?.name || 'model', position, data);
+    //         } else if (captureMode === 'all') {
+    //             const positions = calculatePositions(currentDistance);
+    //             for (const position of positions) {
+    //                 const data = captureScreenshot(
+    //                     camera,
+    //                     gl,
+    //                     scene,
+    //                     position.vector
+    //                 );
+    //                 addScreenshot(selectedModel?.name || 'model', position, data);
+    //                 // await new Promise(resolve => setTimeout(resolve, 500));
+    //             }
+    //         } else if (captureMode === 'all-models') {
+    //             for (const model of models) {
+    //                 selectModel(model.id);
+    //                 await new Promise(resolve => setTimeout(resolve, 100));
+
+    //                 camera.zoom = model.settings.camera?.zoom || 2
+    //                 // Use the stored Distance
+    //                 const positions = calculatePositions(currentDistance)
+    //                 for (const position of positions) {
+    //                     const data = captureScreenshot(
+    //                         camera,
+    //                         gl,
+    //                         scene,
+    //                         position.vector
+    //                     )
+    //                     console.log(model.name, position, data)
+    //                     addScreenshot(model.name, position, data)
+    //                 }
+    //             }
+    //             camera.zoom = initialZoom
+    //         }
+    //         camera.position.copy(initialPosition)
+    //         stopCapture();
+    //     };
+
+    //     handleCapture();
+    // }, [captureInProgress, camera, gl, scene, addScreenshot, captureMode, stopCapture, models, selectModel, selectModel.name, selectedModel?.name]);
+
 
     return null;
 };

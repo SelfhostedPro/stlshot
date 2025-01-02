@@ -6,7 +6,7 @@ import { ThumbnailCarousel } from "@/components/CarouselThumbs"
 import { ScreenshotControls } from "@/features/screenshots/components/ScreenshotControls"
 
 const ScreenshotSidebar: FC = () => {
-    const { screenshots, deleteScreenshot } = useScreenshotsStore()
+    const { screenshots, deleteScreenshot, captureInProgress } = useScreenshotsStore()
     const [viewerOpen, setViewerOpen] = useState<{ open: boolean; index: number }>({
         open: false,
         index: 0
@@ -14,6 +14,7 @@ const ScreenshotSidebar: FC = () => {
     const [imageData, setImageData] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
+        if (captureInProgress) return;
         // Load all images
         screenshots.forEach(async (screenshot) => {
             const image = await getScreenshotImageData(screenshot.imageKey);
@@ -22,7 +23,7 @@ const ScreenshotSidebar: FC = () => {
                 [screenshot.imageKey]: image
             }));
         });
-    }, [screenshots]);
+    }, [screenshots, captureInProgress]);
 
 
     return (
@@ -31,7 +32,7 @@ const ScreenshotSidebar: FC = () => {
             <div className='mx-1.5 border rounded-xl border-border w-full flex-shrink max-h-[50vh]'>
                 {screenshots.length < 1 ? (<span className="block w-full text-center text-muted-foreground">
                     No screenshots yet
-                </span>) : (
+                </span>) : captureInProgress ? (<p className="text-muted-foreground text-sm">Capturing Screenshots...</p>) : (
                     <ThumbnailCarousel<number>
                         // className="full"
                         containerClassName="w-full"

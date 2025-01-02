@@ -26,16 +26,20 @@ interface ThumbnailProps {
 
 const Thumbnail: FC<ThumbnailProps> = ({ screenshot, imageData, className, onClick }: ThumbnailProps) => (
     <Card
-        className={cn("relative w-full overflow-hidden",
+        className={cn("max-w-[50vw] max-h-[50vh] aspect-video overflow-hidden",
             className
         )}>
-        <CardContent className="p-0 cursor-pointer relative w-full h-full" onClick={() => onClick && onClick()}
+        <CardContent
+            className=""
+            onClick={() => onClick && onClick()}
         >
-            <Image
-                fill
+            <img
+                // height={50}
+                // width={50}
+                // sizes="30vw"
                 alt={`${screenshot.id}-${screenshot.position.name}`}
                 src={`data:image/png;base64,${imageData}`}
-                className="object-cover"
+                className=" w-full h-full"
             />
         </CardContent>
     </Card>
@@ -99,14 +103,14 @@ export const ScreenshotViewer = ({
                     </VisuallyHidden>
                     <div className="flex flex-col gap-2">
                         <div className="basis-5/6 relative overflow-hidden rounded-lg aspect-video items-center">
-                            <Carousel className="w-full h-full relative"
+                            <Carousel className="max-w-[50vw] max-h-[50vh] relative flex"
                                 setApi={setApi}
                                 opts={{
                                     loop: true,
                                 }}>
-                                <CarouselContent className="">
+                                <CarouselContent className="max-w-[50vw] max-h-[50vh]">
                                     {screenshots && screenshots.map((screenshot, i) => (
-                                        <CarouselItem key={`screenshot-${i}`}>
+                                        <CarouselItem key={`screenshot-${i}`} className="relative items-center aspect-square py-2">
                                             <Thumbnail screenshot={screenshot} imageData={imageData[screenshot.imageKey]} className="aspect-video" />
                                         </CarouselItem>
                                     ))}

@@ -1,7 +1,7 @@
 import { ChangeEvent } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist, devtools } from 'zustand/middleware';
-import { createIndexedDBStorage } from '@/lib/indexDBStorage';
+import { createIndexedDBStorage, createPersistStorage } from '@/lib/indexDBStorage';
 import { initModel } from './utils/initModel'
 import { ComponentState } from '@/features/scene/store/components'
 import { SettingsState } from '@/features/scene/store/settings'
@@ -32,6 +32,8 @@ interface ModelState {
     models: Model[];
     selectedModel: Model | null;
 }
+
+
 
 interface ModelStateStore extends ModelState {
     isLoading: boolean;
@@ -170,10 +172,10 @@ export const useModelStore = create<ModelStateStore>()(
             }),
             {
                 name: 'model-storage',
-                storage: createJSONStorage(() => createIndexedDBStorage({
+                storage: createPersistStorage<ModelState>({
                     name: 'model-state',
                     version: 1
-                })),
+                }),
                 partialize: (state) => ({
                     models: state.models,
                     selectedModel: state.selectedModel,

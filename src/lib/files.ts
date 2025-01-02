@@ -23,23 +23,18 @@ async function base64ToPng(base64String: string): Promise<Blob> {
 
 export async function createAndDownloadZip(screenshots: Screenshot[]) {
     const zip = new JSZip();
-    const modelNames: string[] = []
-    // First, wait for all screenshots to be processed
-    await Promise.all(
-        screenshots.map(async (screenshot) => {
-            const imageData = await getScreenshotImageData(screenshot.imageKey);
-            const pngBlob = await base64ToPng(imageData);
-            const arrayBuffer = await pngBlob.arrayBuffer();
 
-            zip.file(`${screenshot.modelName}/${screenshot.position.name}.png`, arrayBuffer, {
-                binary: true
-            });
-            if (!modelNames.includes(screenshot.modelName)) {
-                modelNames.push(screenshot.modelName);
-            }
-        })
+    for (const screenshot of screenshots) {
+        const imageData = await getScreenshotImageData(screenshot.imageKey);
+        const pngBlob = await base64ToPng(imageData);
+        const arrayBuffer = await pngBlob.arrayBuffer();
 
-    );
+        console.log(screenshot.modelName, screenshot.position.name, arrayBuffer)
+
+        zip.file(`${screenshot.modelName}/${screenshot.position.name}.png`, arrayBuffer, {
+            binary: true
+        });
+    }
 
     // Generate zip after all files are added
     const zipBlob = await zip.generateAsync({

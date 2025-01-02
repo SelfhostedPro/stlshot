@@ -15,6 +15,7 @@ import { useSceneSettingsStore } from "@/features/scene/store/settings"
 import { ChevronRight, RotateCcw } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
+import { debounce } from 'perfect-debounce'
 
 
 const typeFromLabel: Record<string, SettingControlType> = {
@@ -301,8 +302,11 @@ const RenderComponent: FC<RenderComponentProps> = ({ component }) => {
 export const SceneManager = () => {
     const { components, initializeDefaultScene } = useComponentStore()
 
-    const { camera, canvas, resetCore, updateCamera, updateCanvas } = useSceneSettingsStore()
+    const { camera, canvas, updateCamera, updateCanvas } = useSceneSettingsStore()
     const { selectedModel, updateModel } = useModelStore();
+
+    // const debouncedUpdateCamera = debounce(updateCamera, 1000)
+    // const debouncedUpdateCanvas = debounce(updateCanvas, 1000)
 
     const handleSaveSettings = useCallback(() => {
         if (selectedModel) {

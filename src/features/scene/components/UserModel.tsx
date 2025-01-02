@@ -1,9 +1,10 @@
 "use client"
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useTransition } from 'react'
 import * as THREE from 'three';
 import { useModelStore, getModelData } from '@/features/model/store'
 import { STLLoader } from 'three-stdlib'
-import { ThreeElements } from '@react-three/fiber';
+import { ThreeElements, useLoader } from '@react-three/fiber';
 import { useComponentStore } from '../store/components';
 import { componentTypes } from '../registry';
 import { useSceneSettingsStore } from '../store/settings';
@@ -34,10 +35,16 @@ export const ModelGeometry: FC<ModelGeometryProps> = ({ geometry }) => {
 
 // src/components/3d/Model.tsx
 export const UserModel = () => {
-    const { selectedModel } = useModelStore()
+    const { selectedModel, models } = useModelStore()
     const { updateCamera } = useSceneSettingsStore()
     const meshRef = useRef<ThreeElements['mesh']>(null);
     const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+    const stlLoader = new STLLoader();
+
+    // useEffect(() => {
+    //     if (models.length === 0) return;
+    //     models.map(model => getModelData(model.dataKey).then(data => useLoader(STLLoader, data)))
+    // }, [models])
 
     const modelComponent = useComponentStore(state =>
         state.components
@@ -48,8 +55,6 @@ export const UserModel = () => {
     ).filter(c => c.parentId === modelComponent?.id);
 
     const loadSTL = useCallback(() => {
-        const stlLoader = new STLLoader();
-
         if (!selectedModel?.dataKey) return;
         getModelData(selectedModel.dataKey).then((data) => {
             stlLoader.load(
@@ -113,57 +118,3 @@ export const UserModel = () => {
         </mesh>
     );
 }
-
-
-// export const UserShader = () => {
-//     const { } = useWorkspaceStore();
-//     const UserShader = new CustomShaderMaterial({
-//         baseMaterial: THREE.MeshBasicMaterial,
-//         vertexShader: `#include <common>
-//         #include <morphtarget_pars_vertex>
-//         #include <skinning_pars_vertex>
-//         uniform float thickness;
-//         uniform bool screenspace;
-//         uniform vec2 size;
-//         void main() {
-//           #if defined (USE_SKINNING)
-//               #include <beginnormal_vertex>
-//             #include <morphnormal_vertex>
-//             #include <skinbase_vertex>
-//             #include <skinnormal_vertex>
-//             #include <defaultnormal_vertex>
-//           #endif
-//           #include <begin_vertex>
-//             #include <morphtarget_vertex>
-//             #include <skinning_vertex>
-//           #include <project_vertex>
-//           vec4 tNormal = vec4(normal, 0.0);
-//           vec4 tPosition = vec4(transformed, 1.0);
-//           #ifdef USE_INSTANCING
-//             tNormal = instanceMatrix * tNormal;
-//             tPosition = instanceMatrix * tPosition;
-//           #endif
-//           if (screenspace) {
-//             vec3 newPosition = tPosition.xyz + tNormal.xyz * thickness;
-//             gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0); 
-//           } else {
-//             vec4 clipPosition = projectionMatrix * modelViewMatrix * tPosition;
-//             vec4 clipNormal = projectionMatrix * modelViewMatrix * tNormal;
-//             vec2 offset = normalize(clipNormal.xy) * thickness / size * clipPosition.w * 2.0;
-//             clipPosition.xy += offset;
-//             gl_Position = clipPosition;
-//           }
-//         }`,
-//         fragmentShader: `uniform vec3 color;
-//         uniform float opacity;
-//         void main(){
-//           gl_FragColor = vec4(color, opacity);
-//           #include <tonemapping_fragment>
-//           #include <colorspace_fragment>
-//         }`
-//     })
-
-
-
-//     return UserShader
-// }

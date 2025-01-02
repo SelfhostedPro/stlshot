@@ -28,6 +28,7 @@ export function FileUpload() {
                 ref={inputRef}
                 className="hidden"
                 accept=".stl"
+                multiple
                 onChange={uploadModel}
             />
             {/* {error && (

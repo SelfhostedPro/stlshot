@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { produce } from 'immer';
-import { defu } from 'defu';
 import { CanvasSettings, CameraSettings } from '../types';
 
 export interface SettingsState {
@@ -23,7 +22,7 @@ const initialState: SettingsState = {
       antialias: true
     },
     dpr: [1, 100],
-    shadows: true,
+    shadows: false,
     frameloop: 'demand',
     flat: true,
     linear: true,
@@ -45,12 +44,12 @@ export const useSceneSettingsStore = create<SettingsStateStore>()(
         ...initialState,
         updateCanvas: (settings) => set(
           produce((state) => {
-            state.canvas = defu(settings, state.canvas);
+            Object.assign(state.canvas, settings);
           })
         ),
         updateCamera: (settings) => set(
           produce((state) => {
-            state.camera = defu(settings, state.camera);
+            Object.assign(state.camera, settings);
           })
         ),
         reset: () => set(initialState),
